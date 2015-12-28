@@ -1,0 +1,21 @@
+{
+    "name": "veksoftware/yii2-sms-sender",
+    "description": "Sends an SMS message throw a web gateway",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","sms"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sergey Okatov",
+            "email": "sokatov@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "sms\\": ""
+        }
+    }
+}
