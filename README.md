@@ -28,4 +28,26 @@ Usage
 Once the extension is installed, simply use it in your code by  :
 
 ```php
-<?= \sms\AutoloadExample::widget(); ?>```
+// config/main.php
+<?php
+    'components' => [
+        'sms' => [
+            'class' => '\sms\components\SmsComponent',
+            'url' => 'http://location.of.sms.gateway.service',
+            'account' => 'my_account_at_service',
+            'password' => 'my password at service',
+            'sender' => 'Set From String',
+        ]
+    ]
+```
+
+Then you can use it in your code :
+
+```php
+
+<?php
+    Yii::$app->sms->setText('SMS text')->setPhone('+12345678901')->send();
+
+    Yii::$app->sms->compose([ 'text' => 'SMS text', 'phone' => '+12345678901')->send();
+?>
+```
