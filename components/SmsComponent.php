@@ -1,5 +1,5 @@
 <?php
-namespace app\components;
+namespace sms\components;
 
 use Yii;
 use yii\base\Component;
