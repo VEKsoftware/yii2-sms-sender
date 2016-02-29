@@ -59,15 +59,17 @@ function PushMessage(&$params, &$res){
 }
 */
 
-class SmsComponent extends Component
+class GcmComponent extends Component
 {
     public $url;
-    public $account;
-    public $password;
+    public $auth_key;
     public $sender;
+    public $errors;
 
     private $_text;
-    private $_phone;
+    private $_data;
+    private $_notification;
+    private $_push_token;
 
     public function compose($params)
     {
@@ -76,8 +78,16 @@ class SmsComponent extends Component
             case('text'):
                 $this->setText($data);
                 break;
-            case('phone'):
-                $this->setPhone($data);
+            case('push_token'):
+                $this->setPushToken($data);
+                break;
+            }
+            case('data'):
+                $this->setData($data);
+                break;
+            }
+            case('notification'):
+                $this->setNotification($data);
                 break;
             }
         }
@@ -90,30 +100,65 @@ class SmsComponent extends Component
         return $this;
     }
 
-    public function setPhone($phone)
+    public function setData($data)
     {
-        $this->_phone = $phone;
+        $this->_data = $data;
+        return $this;
+    }
+
+    public function setNotification($data)
+    {
+        $this->_notification = $data;
+        return $this;
+    }
+
+    public function setPushToken($token)
+    {
+        $this->_push_token = $token;
         return $this;
     }
 
     public function send()
     {
-        $data = [
-            'login' => $this->account,
-            'password' => $this->password,
-            'phone' => $this->_phone,
-            'text' => $this->_text,
-            'sender'=> $this->sender,
+        if (! isset($this->_push_token)) {
+            $this->errors = [
+                'push_token' => Yii::t('sms','Push token should be set'),
+            ];
+            return false;
+        }
+        $postdata=[
+            'data' => $this->_data + [
+                'message' => $this->_text,
+                'sender'=> $this->sender,
+            ],
+            'notification' => $this->_notification + [
+                'text' => $this->text,
+                'body' => $this->text,
+                'title' => $this->sender,
+//                'icon' => "myicon",
+            ],
+            'to' => $this->_push_token,
         ];
-        $request=$this->url."?".http_build_query($data);
-        $connection = curl_init();
-        curl_setopt($connection, CURLOPT_URL, $request);
-        curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
-        $result = curl_exec($connection);
-        curl_close($connection);
+        $headers=[
+            'Content-Type: application/json; charset=UTF-8',
+            'Authorization: key='.$this->auth_key,
+        ];
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $this->url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postdata));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $r = curl_exec($ch);
+        curl_close($ch);
 
-        $answer='accepted';
-        return  ($result!=false && substr($result, 0, strlen($answer)) === $answer);
+        if ($r){
+            return true;
+        } else {
+            $this->errors = [
+                'result' => Yii::t('sms','Error answer to request'),
+            ];
+            return false;
+        }
     }
-
 }
