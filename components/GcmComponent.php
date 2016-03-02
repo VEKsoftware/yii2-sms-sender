@@ -67,8 +67,8 @@ class GcmComponent extends Component
     public $errors;
 
     private $_text;
-    private $_data;
-    private $_notification;
+    private $_data = [];
+    private $_notification = [];
     private $_push_token;
 
     public function compose($params)
@@ -81,11 +81,9 @@ class GcmComponent extends Component
             case('push_token'):
                 $this->setPushToken($data);
                 break;
-            }
             case('data'):
                 $this->setData($data);
                 break;
-            }
             case('notification'):
                 $this->setNotification($data);
                 break;
@@ -129,11 +127,11 @@ class GcmComponent extends Component
         $postdata = [
             'data' => $this->_data + [
                 'message' => $this->_text,
-                'sender'=> $this->sender,
+                'sender' => $this->sender,
             ],
             'notification' => $this->_notification + [
-                'text' => $this->text,
-                'body' => $this->text,
+                'text' => $this->_text,
+                'body' => $this->_text,
                 'title' => $this->sender,
 //                'icon' => "myicon",
             ],
