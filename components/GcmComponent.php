@@ -139,7 +139,9 @@ class GcmComponent extends Component
         if(is_string($this->_push_token)) {
             $postdata['to'] = $this->_push_token;
         } elseif(is_array($this->_push_token)) {
-            $postdata['registration_ids'] = $this->_push_token;
+            foreach($this->_push_token as $token) {
+                if($token) $postdata['registration_ids'][] = $token;
+            }
         } else {
             throw new ErrorException('Unknown format of push_token for GCM service');
         }
@@ -147,6 +149,7 @@ class GcmComponent extends Component
             'Content-Type: application/json; charset=UTF-8',
             'Authorization: key='.$this->auth_key,
         ];
+        die();
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
