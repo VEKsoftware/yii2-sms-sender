@@ -126,7 +126,7 @@ class GcmComponent extends Component
             ];
             return false;
         }
-        $postdata=[
+        $postdata = [
             'data' => $this->_data + [
                 'message' => $this->_text,
                 'sender'=> $this->sender,
@@ -137,9 +137,15 @@ class GcmComponent extends Component
                 'title' => $this->sender,
 //                'icon' => "myicon",
             ],
-            'to' => $this->_push_token,
         ];
-        $headers=[
+        if(is_string($this->_push_token)) {
+            $postdata['to'] = $this->_push_token;
+        } elseif(is_array($this->_push_token)) {
+            $postdata['registration_ids'] = $this->_push_token;
+        } else {
+            throw new ErrorException('Unknown format of push_token for GCM service');
+        }
+        $headers = [
             'Content-Type: application/json; charset=UTF-8',
             'Authorization: key='.$this->auth_key,
         ];
