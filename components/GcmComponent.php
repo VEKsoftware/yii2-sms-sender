@@ -87,8 +87,11 @@ class GcmComponent extends Component
         if(is_string($this->_push_token)) {
             $postdata['to'] = $this->_push_token;
         } elseif(is_array($this->_push_token)) {
+            $postdata['registration_ids'] = [];
             foreach($this->_push_token as $token) {
-                if($token) $postdata['registration_ids'][] = $token;
+                if($token && is_string($token) && ! in_array($token,$postdata['registration_ids'])) {
+                    $postdata['registration_ids'][] = $token;
+                }
             }
         } else {
             throw new ErrorException('Unknown format of push_token for GCM service');
