@@ -4,6 +4,7 @@ namespace sms\components;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\base\ErrorException;
 
 class SmsComponent extends Component
 {
@@ -45,6 +46,9 @@ class SmsComponent extends Component
 
     public function send()
     {
+        if(empty($this->sender)) {
+            throw new ErrorException('Sender is not specified for sms component');
+        }
         $data = [
             'login' => $this->account,
             'password' => $this->password,
@@ -58,6 +62,12 @@ class SmsComponent extends Component
         curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
         $result = curl_exec($connection);
         curl_close($connection);
+
+/*
+        var_dump($data);
+        list($res, $mes_id) = explode(';', $result);
+        echo "$res --- $mes_id";
+*/
 
         $answer='accepted';
         return  ($result!=false && substr($result, 0, strlen($answer)) === $answer);
