@@ -8,6 +8,20 @@ use yii\base\ErrorException;
 
 class SmsComponent extends Component
 {
+    /**
+     * ```php
+     * [
+     *    '/preg_match_expression/' => [
+     *        'url' => 'http://url', // This is fixed parameter
+     *        // any other list of get parameters
+     *        'account' => 'xxxxx',
+     *        'password' => 'pAsSw0rD',
+     *    ],
+     * ],
+     * ```
+     */
+    public $providers_map;
+
     public $url;
     public $account;
     public $password;
@@ -46,17 +60,36 @@ class SmsComponent extends Component
 
     public function send()
     {
-        if(empty($this->sender)) {
+        $data = [];
+        if(! empty($this->providers_map)) {
+            foreach($this->providers_map as $exp => $dat) {
+                if(preg_match($exp,$this->_phone)) {
+                    if(! isset($dat['url'])) {
+                        throw new \Exception(__CLASS__ . ': You have to set provider url for '.$exp);
+                    }
+                    $url = $dat['url'];
+                    $data = $dat;
+                    unset($data['url']);
+                }
+            }
+            if(empty($data)) {
+                return false;
+            }
+        } else {
+            $url = $this->url;
+            $data = [
+                'login' => $this->account,
+                'password' => $this->password,
+                'phone' => $this->_phone,
+                'sender'=> $this->sender,
+        ];
+        }
+        $data['text'] = $this->_text;
+        $data['phone'] = $this->_phone;
+        if(!isset($data['sender'])) {
             throw new ErrorException('Sender is not specified for sms component');
         }
-        $data = [
-            'login' => $this->account,
-            'password' => $this->password,
-            'phone' => $this->_phone,
-            'text' => $this->_text,
-            'sender'=> $this->sender,
-        ];
-        $request=$this->url."?".http_build_query($data);
+        $request=$url."?".http_build_query($data);
         $connection = curl_init();
         curl_setopt($connection, CURLOPT_URL, $request);
         curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
