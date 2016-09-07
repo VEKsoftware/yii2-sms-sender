@@ -27,6 +27,7 @@ class SmsComponent extends Component
     public $password;
     public $errors;
     public $sender;
+    public $method = 'GET';
 
     private $_text;
     private $_phone;
@@ -62,14 +63,36 @@ class SmsComponent extends Component
     {
         $data = [];
         if(! empty($this->providers_map)) {
-            foreach($this->providers_map as $exp => $dat) {
-                if(preg_match($exp,$this->_phone)) {
+            foreach($this->providers_map as $dat) {
+                if(! isset($dat['match']) || preg_match($dat['match'], $this->_phone)) {
                     if(! isset($dat['url'])) {
                         throw new \Exception(__CLASS__ . ': You have to set provider url for '.$exp);
                     }
                     $url = $dat['url'];
-                    $data = $dat;
-                    unset($data['url']);
+                    $data = $dat['options'];
+                    $phoneField = isset($dat['phoneField']) ? $dat['phoneField'] : 'phone';
+                    $textField = isset($dat['textField']) ? $dat['textField'] : 'text';
+                    $data[$phoneField] = preg_replace('/[^0-9]/','',$this->_phone);
+                    $data[$textField] = $this->_text;
+
+
+                    if($this->method === 'POST') {
+                        $connection = curl_init("http://sms.ru/sms/send");
+                        curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
+                        curl_setopt($connection, CURLOPT_TIMEOUT, 30);
+                        curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+                        throw new \Exception(print_r($data,true));
+                        $result = curl_exec($ch);
+                        curl_close($connection);
+                    } else {
+                        $request=$url."?".http_build_query($data);
+                        $connection = curl_init();
+                        curl_setopt($connection, CURLOPT_URL, $request);
+                        curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
+                        $result = curl_exec($connection);
+                        curl_close($connection);
+                    }
+                    return true;
                 }
             }
             if(empty($data)) {
@@ -82,13 +105,11 @@ class SmsComponent extends Component
                 'password' => $this->password,
                 'phone' => $this->_phone,
                 'sender'=> $this->sender,
+                'text' => $this->_text,
+                'phone' => $this->_phone,
         ];
         }
-        $data['text'] = $this->_text;
-        $data['phone'] = $this->_phone;
-        if(!isset($data['sender'])) {
-            throw new ErrorException('Sender is not specified for sms component');
-        }
+
         $request=$url."?".http_build_query($data);
         $connection = curl_init();
         curl_setopt($connection, CURLOPT_URL, $request);
