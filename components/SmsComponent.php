@@ -76,7 +76,7 @@ class SmsComponent extends Component
                     $data[$textField] = $this->_text;
 
 
-                    if($this->method === 'POST') {
+                    if(isset($dat['method']) && $dat['method'] === 'POST') {
                         $connection = curl_init("http://sms.ru/sms/send");
                         curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($connection, CURLOPT_TIMEOUT, 30);
