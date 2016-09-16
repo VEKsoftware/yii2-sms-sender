@@ -29,8 +29,8 @@ class SmsComponent extends Component
     public $sender;
     public $method = 'GET';
 
-    private $_text;
-    private $_phone;
+    protected $_text;
+    protected $_phone;
 
     public function compose($params)
     {
