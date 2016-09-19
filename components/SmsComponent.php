@@ -68,7 +68,10 @@ class SmsComponent extends Component
                     if(! isset($dat['url'])) {
                         throw new \Exception(__CLASS__ . ': You have to set provider url for '.$exp);
                     }
+                    
                     $url = $dat['url'];
+                    if($this->checkConnectionExists($url) === FALSE) continue;
+                    
                     $data = $dat['options'];
                     $phoneField = isset($dat['phoneField']) ? $dat['phoneField'] : 'phone';
                     $textField = isset($dat['textField']) ? $dat['textField'] : 'text';
@@ -99,7 +102,10 @@ class SmsComponent extends Component
                 return false;
             }
         } else {
+            
             $url = $this->url;
+            if($this->checkConnectionExists($url) === FALSE) return FALSE;
+            
             $data = [
                 'login' => $this->account,
                 'password' => $this->password,
@@ -127,4 +133,25 @@ class SmsComponent extends Component
         return  ($result!=false && substr($result, 0, strlen($answer)) === $answer);
     }
 
+    /**
+     * Check url for connection
+     * 
+     * @param string $url Url string
+     * 
+     * @return boolean
+     */
+    protected function checkConnectionExists($url)
+    {
+        $connection = curl_init();
+        if(!$connection) return FALSE;
+        
+        curl_setopt($connection, CURLOPT_URL, $url);
+        curl_setopt($connection, CURLOPT_TIMEOUT, 1);
+        curl_setopt($connection, CURLOPT_RETURNTRANSFER, TRUE);
+
+        $result = curl_exec($connection);
+        curl_close($connection);
+        
+        return boolval($result);
+    }
 }
