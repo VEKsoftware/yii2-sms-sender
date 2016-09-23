@@ -146,7 +146,7 @@ class SmsComponent extends Component
         if(!$connection) return FALSE;
         
         curl_setopt($connection, CURLOPT_URL, $url);
-        curl_setopt($connection, CURLOPT_TIMEOUT, 1);
+        curl_setopt($connection, CURLOPT_TIMEOUT, 5);
         curl_setopt($connection, CURLOPT_RETURNTRANSFER, TRUE);
 
         $result = curl_exec($connection);
