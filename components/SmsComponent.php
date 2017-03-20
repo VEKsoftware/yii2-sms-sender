@@ -31,6 +31,9 @@ class SmsComponent extends Component
 
     protected $_text;
     protected $_phone;
+    
+    /* result of last send operation */
+    protected $_result;
 
     public function compose($params)
     {
@@ -61,6 +64,9 @@ class SmsComponent extends Component
 
     public function send()
     {
+        // reset resut of last send operation
+        $this->_result = NULL;
+        
         $data = [];
         if(! empty($this->providers_map)) {
             foreach($this->providers_map as $dat) {
@@ -95,6 +101,10 @@ class SmsComponent extends Component
                         $result = curl_exec($connection);
                         curl_close($connection);
                     }
+                    
+                    // save result of send operation
+                    $this->_result = $result;
+                    
                     return true;
                 }
             }
@@ -129,6 +139,9 @@ class SmsComponent extends Component
         echo "$res --- $mes_id";
 */
 
+        // save result of send operation
+        $this->_result = $result;
+
         $answer='accepted';
         return  ($result!=false && substr($result, 0, strlen($answer)) === $answer);
     }
@@ -153,5 +166,14 @@ class SmsComponent extends Component
         curl_close($connection);
         
         return boolval($result);
+    }
+    
+    /**
+     * Result of last send operation
+     * @return mixed
+     */
+    public function getResult()
+    {
+        return $this->_result;
     }
 }
