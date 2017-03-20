@@ -34,6 +34,8 @@ class SmsComponent extends Component
     
     /* result of last send operation */
     protected $_result;
+    /* config of the provider which has been used in last SMS-message */
+    protected $_provider;
 
     public function compose($params)
     {
@@ -64,8 +66,10 @@ class SmsComponent extends Component
 
     public function send()
     {
-        // reset resut of last send operation
+        // reset result of the last send operation
         $this->_result = NULL;
+        // reset config of the last sms-provider
+        $this->_provider = NULL;
         
         $data = [];
         if(! empty($this->providers_map)) {
@@ -86,7 +90,7 @@ class SmsComponent extends Component
 
 
                     if(isset($dat['method']) && $dat['method'] === 'POST') {
-                        $connection = curl_init("http://sms.ru/sms/send");
+                        $connection = curl_init($url);
                         curl_setopt($connection, CURLOPT_RETURNTRANSFER, true);
                         curl_setopt($connection, CURLOPT_TIMEOUT, 30);
                         curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
@@ -104,6 +108,8 @@ class SmsComponent extends Component
                     
                     // save result of send operation
                     $this->_result = $result;
+                    // save config of the current provider
+                    $this->_provider = $dat;
                     
                     return true;
                 }
@@ -141,6 +147,10 @@ class SmsComponent extends Component
 
         // save result of send operation
         $this->_result = $result;
+        // save config of the current provider
+        $this->_provider = [
+            'url' => $this->url,
+        ];
 
         $answer='accepted';
         return  ($result!=false && substr($result, 0, strlen($answer)) === $answer);
@@ -175,5 +185,15 @@ class SmsComponent extends Component
     public function getResult()
     {
         return $this->_result;
+    }
+    
+    /**
+     * Getter: config of the provider
+     * which has been used in last SMS-message
+     * @return mixed[] properties of the config
+     */
+    public function getProvider()
+    {
+        return $this->_provider;
     }
 }
